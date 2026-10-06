@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 调试产物 / 临时文件
+build_err.txt
+build_out.txt
+sso-debug.png
+
+# 一次性验证脚本与临时导出（非交付物）
+scripts/
+docs/.tmp/
+docs/screenshots/
+
+# 工具生成的临时目录
+.trae-html-share-packages/
+
+# git 备份（损坏的 .git 目录，仅本地留存）
+.git.broken*/
+
+# 个人笔记（非项目交付物）
+面试准备.md
+
+# 面试准备向文档（不公开，文件保留在本地磁盘）
+docs/INTERVIEW-UPGRADE.md
+docs/CODE-REVIEW-2026-09-21.md
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

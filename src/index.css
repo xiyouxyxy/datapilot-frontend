@@ -1,0 +1,28 @@
+/* 全局基础样式：仅做最小重置，视觉一律交给 antd 主题（ConfigProvider）控制。 */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
+  /* 与 antd 默认字号/行高对齐，避免继承到非 antd 容器时行高被放大 */
+  font-size: 14px;
+  line-height: 1.5714;
+  color: rgba(0, 0, 0, 0.88);
+  background: #f5f5f5;
+  /* 应用只做浅色主题，声明 light 以免暗色系统下原生滚动条/控件变黑 */
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 撑满视口：min-height 保证内容不足时也占满高度，内容超长时正常滚动 */
+#root {
+  min-height: 100%;
+}
