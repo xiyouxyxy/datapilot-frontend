@@ -8,8 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # 调试产物 / 临时文件
-build_err.txt
-build_out.txt
+build_*.txt
 sso-debug.png
 
 # 一次性验证脚本与临时导出（非交付物）
@@ -34,6 +33,17 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# 测试覆盖率 / 构建缓存
+coverage/
+*.tsbuildinfo
+.eslintcache
+.vite/
+
+# 系统文件
+Thumbs.db
+desktop.ini
+*.zip
 
 # Editor directories and files
 .vscode/*
