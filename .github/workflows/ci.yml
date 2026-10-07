@@ -141,6 +141,13 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+        with:
+          # 仓库若尚未在 Settings → Pages 里把 Source 设为 "GitHub Actions"，
+          # 这里会用 pages:write 权限自动开启，避免首次部署因为没开 Pages 而失败
+          enablement: true
+
       - name: 生产构建（base 指向 Pages 子路径）
         # Pages 的「项目站点」挂在 https://<user>.github.io/<repo>/ 子路径下，
         # 必须把 Vite 的 base 指过去，否则打包出的 /assets/*.js 会 404、页面白屏
