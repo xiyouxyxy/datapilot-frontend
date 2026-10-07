@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import type { ReactNode } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import { Spin } from 'antd';
 import { Authorized } from './guards';
 import Home from '@/pages/home';
@@ -29,7 +30,12 @@ function Page({ children }: { children: ReactNode }) {
   );
 }
 
-export const router = createBrowserRouter([
+// 子路径部署（如 GitHub Pages 的 /datapilot-frontend/）时，Vite 会把 base 写进 BASE_URL，
+// 这里把它对齐成 React Router 的 basename，深链接（/datapilot-frontend/employee）才能被正确匹配。
+// 根路径部署时 BASE_URL 为 '/'，去掉尾斜杠得到空串，等价于不设 basename。
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const routes: RouteObject[] = [
   {
     path: '/login',
     element: (
@@ -129,4 +135,6 @@ export const router = createBrowserRouter([
       </Page>
     ),
   },
-]);
+];
+
+export const router = createBrowserRouter(routes, { basename });

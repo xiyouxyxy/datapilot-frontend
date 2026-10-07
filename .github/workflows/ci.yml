@@ -101,3 +101,62 @@ jobs:
       - name: 失败时打印容器日志
         if: failure()
         run: docker logs app || true
+
+  # ---------------------------------------------------------------
+  # Job 3（CD）：自动发布到 GitHub Pages
+  # 只在 push 到 main 时发布（PR 只跑检查、不发布），且必须 Job 1 全绿。
+  # 发布后得到一个可直接打开的网址 —— 面试官不用 clone 下来跑就能体验项目。
+  # ---------------------------------------------------------------
+  deploy-pages:
+    name: 发布到 GitHub Pages
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 10
+
+    # Pages 发布需要：写 pages 产物 + 用 OIDC 短时凭证换取 id-token
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    # 绑定 github-pages 环境，发布地址会展示在仓库首页右侧
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    env:
+      HUSKY: 0
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 准备 Node 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 生产构建（base 指向 Pages 子路径）
+        # Pages 的「项目站点」挂在 https://<user>.github.io/<repo>/ 子路径下，
+        # 必须把 Vite 的 base 指过去，否则打包出的 /assets/*.js 会 404、页面白屏
+        run: npm run build -- --base=/datapilot-frontend/
+
+      - name: 生成 SPA 404 回退页
+        # GitHub Pages 没有 nginx 的 try_files，直接访问 /datapilot-frontend/employee 会真 404。
+        # 把 index.html 复制成 404.html，让 404 也返回 SPA 入口，交给前端路由接管 ——
+        # 等价于 nginx 里的 `try_files $uri $uri/ /index.html`
+        run: cp dist/index.html dist/404.html
+
+      - name: 上传 Pages 产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: 发布
+        id: deploy
+        uses: actions/deploy-pages@v4

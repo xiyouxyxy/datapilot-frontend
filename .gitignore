@@ -19,9 +19,6 @@ docs/screenshots/
 # 工具生成的临时目录
 .trae-html-share-packages/
 
-# git 备份（损坏的 .git 目录，仅本地留存）
-.git.broken*/
-
 # 个人笔记（非项目交付物）
 面试准备.md
 

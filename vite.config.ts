@@ -5,6 +5,10 @@ import { fileURLToPath, URL } from 'node:url';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
+  // 部署路径默认是根路径 '/'（本地 dev、Docker + nginx 都属于这种情况）。
+  // GitHub Pages 这类「项目站点」挂在子路径（/<repo>/）下，由 CI 用
+  // `npm run build -- --base=/datapilot-frontend/` 覆盖，
+  // 否则打包出来的 /assets/*.js 会 404、页面白屏。
   plugins: [
     react(),
     // P2-3 打包优化：`$env:ANALYZE=1; npm run build` 时额外输出依赖体积分析（dist/stats.html）

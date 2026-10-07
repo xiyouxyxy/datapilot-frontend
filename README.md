@@ -87,7 +87,7 @@ src/
 
 ## 部署
 
-项目自带 **多阶段 Dockerfile + nginx 配置 + GitHub Actions CI**，整条流水线开箱可用。
+项目自带 **多阶段 Dockerfile + nginx 配置 + GitHub Actions CI/CD**，整条流水线开箱可用。
 
 ### 持续集成（CI）
 
@@ -104,6 +104,19 @@ src/
 - 静态资源带上了预期的 `Cache-Control` 响应头
 
 配置见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
+
+### 持续部署（CD）
+
+`main` 分支上 CI 全绿后，`deploy-pages` 任务会把构建产物自动发布到 **GitHub Pages**，得到一个不用 clone 就能直接打开的在线地址：
+
+**https://xiyouxyxy.github.io/datapilot-frontend/**
+
+因为是「项目站点」，站点挂在 `/<repo>/` 子路径下，这里顺手解掉了子路径部署特有的两个坑：
+
+- **资源路径**：构建时用 `--base=/datapilot-frontend/` 覆盖 Vite 的 `base`，否则产物里写死的 `/assets/*.js` 会 404、页面白屏。
+- **深链接 404**：Pages 没有 nginx 的 `try_files`，直接访问 `/datapilot-frontend/employee` 会真 404。发布前把 `index.html` 复制一份成 `404.html`，让 404 也回到 SPA 入口，由前端路由接管。
+
+配套地，`src/router/index.tsx` 会把 `import.meta.env.BASE_URL` 交给 React Router 当 `basename`，保证子路径下深链接能被正确匹配；根路径部署时该值为空串，行为与之前完全一致。
 
 ### 用 Docker 运行
 
