@@ -111,6 +111,8 @@ src/
 
 **https://xiyouxyxy.github.io/datapilot-frontend/**
 
+> 仓库首次发布前，需要在 `Settings → Pages → Build and deployment → Source` 里选一次 **GitHub Actions**（只需一次）。
+
 因为是「项目站点」，站点挂在 `/<repo>/` 子路径下，这里顺手解掉了子路径部署特有的两个坑：
 
 - **资源路径**：构建时用 `--base=/datapilot-frontend/` 覆盖 Vite 的 `base`，否则产物里写死的 `/assets/*.js` 会 404、页面白屏。
