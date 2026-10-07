@@ -1,5 +1,7 @@
 # DataPilot · 企业数据分析平台（前端）
 
+[![CI](https://github.com/xiyouxyxy/datapilot-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/xiyouxyxy/datapilot-frontend/actions/workflows/ci.yml)
+
 一个面向 **ToB 信息化场景** 的前端项目，覆盖「权限管控 / 万级数据表格 / 可视化看板 / 审批流 / 消息中心 / 复杂表单 / 数据导入」七大业务叙事。纯前端 + Mock 数据，开箱即跑，作为中后台前端能力的完整演示。
 
 ## 技术栈
@@ -47,6 +49,7 @@ npm run preview
 
 # 代码检查 / 格式化 / 测试
 npm run lint
+npm run typecheck
 npm run format
 npm run test
 ```
@@ -81,6 +84,56 @@ src/
 ├── constants/         # 角色 / 权限码 / 字段码 / 存储键
 └── types/             # 全局类型契约
 ```
+
+## 部署
+
+项目自带 **多阶段 Dockerfile + nginx 配置 + GitHub Actions CI**，整条流水线开箱可用。
+
+### 持续集成（CI）
+
+每次 push 到 `main` 或提交 PR，GitHub Actions 自动执行：
+
+```
+类型检查 → ESLint → 单元测试 → 生产构建 → Docker 镜像构建 → 容器冒烟测试
+```
+
+其中冒烟测试会真的把容器跑起来，验证三件事：
+
+- 首页返回 200
+- **SPA 路由回退**：直接访问 `/employee`（磁盘上没有这个文件）也能正确返回 `index.html`
+- 静态资源带上了预期的 `Cache-Control` 响应头
+
+配置见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
+
+### 用 Docker 运行
+
+```bash
+# 构建镜像
+docker build -t datapilot-frontend .
+
+# 启动容器
+docker run -d -p 8080:80 --name datapilot datapilot-frontend
+
+# 打开 http://localhost:8080
+```
+
+镜像采用**多阶段构建**，最终镜像里只有静态文件 + nginx：
+
+| 阶段   | 基础镜像             | 作用                                  |
+| ------ | -------------------- | ------------------------------------- |
+| builder | `node:22-alpine`    | 装依赖 + `vite build`，产出 `dist/`   |
+| runner  | `nginx:stable-alpine` | 只接收 `dist/`，对外提供静态服务    |
+
+> 先 COPY 依赖清单再 COPY 源码，是为了让「装依赖」这一层能被 Docker 缓存复用 —— 只改业务代码时不会重新 `npm ci`。
+
+### nginx 配置要点
+
+`nginx.conf` 里几个容易踩坑的地方：
+
+- **SPA 路由回退**：`try_files $uri $uri/ /index.html;` —— 少了这行，直接访问 `/employee` 会 404。
+- **缓存策略**：`/assets/` 下是带 hash 的产物，可以 `immutable` 缓存一年；而 `index.html` 必须 `no-cache`，否则发版后用户会拿到旧壳子。
+- **gzip**：对 JS / CSS / JSON / SVG 开启压缩。
+- **反向代理预留**：接真实后端时，打开文件末尾 `/api/` 那段注释即可。
 
 ## 设计要点
 

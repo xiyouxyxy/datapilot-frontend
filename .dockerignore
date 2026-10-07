@@ -1,0 +1,23 @@
+# 依赖与构建产物（容器内会重新生成）
+node_modules
+dist
+coverage
+
+# 版本控制 / 编辑器
+.git
+.gitignore
+.gitattributes
+.git.broken*
+.github
+.vscode
+.idea
+
+# 文档与本地调试脚本（不参与构建）
+docs
+scripts
+*.md
+
+# 调试产物
+*.log
+build_*.txt
+sso-debug.png

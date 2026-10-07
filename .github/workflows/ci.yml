@@ -1,0 +1,103 @@
+name: CI
+
+# 触发时机：推送到 main、以及针对 main 的 PR
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 同一分支连续推送时，取消上一次还没跑完的任务，避免排队堆积
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------
+  # Job 1：代码质量 + 生产构建
+  # 这就是「本地 npm run xxx 那几条命令」在云端的自动化版本
+  # ---------------------------------------------------------------
+  quality:
+    name: 质量检查与构建
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      # CI 环境不提交代码，跳过 husky 安装 git hooks
+      HUSKY: 0
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 准备 Node 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      - name: 代码规范检查
+        run: npm run lint
+
+      - name: 单元测试
+        run: npm run test
+
+      - name: 生产构建
+        run: npm run build
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  # ---------------------------------------------------------------
+  # Job 2：Docker 镜像构建 + 容器冒烟测试
+  # 等 Job 1 通过后才跑；这一步能证明 Dockerfile / nginx.conf 是**真的可用**
+  # ---------------------------------------------------------------
+  docker:
+    name: Docker 构建与冒烟测试
+    runs-on: ubuntu-latest
+    needs: quality
+    timeout-minutes: 10
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 构建镜像
+        run: docker build -t datapilot-frontend:ci .
+
+      - name: 启动容器并验证
+        run: |
+          docker run -d --name app -p 8080:80 datapilot-frontend:ci
+
+          # 等 nginx 起来（最多重试 10 次）
+          for i in $(seq 1 10); do
+            if curl -fsS http://localhost:8080/ > /dev/null 2>&1; then
+              echo "容器已就绪"; break
+            fi
+            echo "等待中... ($i)"; sleep 2
+          done
+
+          echo "--- 首页返回 200 ---"
+          curl -fsS http://localhost:8080/ > /dev/null
+
+          echo "--- SPA 路由回退：/employee 应返回 index.html ---"
+          curl -fsS http://localhost:8080/employee | grep -q '<div id="root">'
+
+          echo "--- 静态资源长期缓存头 ---"
+          curl -fsSI http://localhost:8080/ | grep -i 'cache-control'
+
+          echo "冒烟测试通过"
+
+      - name: 失败时打印容器日志
+        if: failure()
+        run: docker logs app || true
