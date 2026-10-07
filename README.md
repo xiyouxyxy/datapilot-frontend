@@ -78,7 +78,7 @@ src/
 ├── router/            # 路由 + 守卫（RequireAuth / Authorized）+ 菜单配置
 ├── store/             # Zustand 状态（user / app / message，只持久化 token）
 ├── services/          # 接口封装（user / employee / dashboard / workflow / message）
-├── mock/              # Mock 数据（18 接口，含 1 万条员工生成器）
+├── mock/              # Mock 数据（22 接口，含 1 万条员工生成器）
 ├── utils/             # 工具（请求封装 / 权限纯函数 / 导出 / Excel 解析 / 埋点 / 异常监听）
 ├── i18n/              # 中英双语资源
 ├── constants/         # 角色 / 权限码 / 字段码 / 存储键
