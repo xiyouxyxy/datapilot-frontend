@@ -859,6 +859,13 @@ Docker 冒烟测试是真的把容器跑起来验三件事，所以它能证明 
 
 为局域网手机调移动端适配方便。如果 5173 被占，Vite 会自动 +1。
 
+### 14.6 Mock 的 token 表在内存里，刷新页面会掉登录
+
+mock 签发的 token 存在模块内存中，页面刷新即清空 → `/user/info` 返回 `40100` →
+`RequireAuth` 重拉失败 → 跳回 `/login`。**这是 mock 的固有限制，不是 bug**。
+想避免的话，把 token 表落一份到 `localStorage` 再在 `setupMock` 时读回来即可。
+详见 `MOCK-GUIDE.md` §8.1。
+
 ---
 
 ## 附录 A：常用命令速查
